@@ -1,6 +1,6 @@
 <%@ page import="java.util.*, java.sql.*,info.habot.tm470.dao.*" %>
 <%
-	String driverName = application.getInitParameter("driverName");
+String driverName = application.getInitParameter("driverName");
 String dbUrl = application.getInitParameter("dbUrl");
 String userId = application.getInitParameter("userId");
 String passWord = application.getInitParameter("passWord");
