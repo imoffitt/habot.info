@@ -68,5 +68,12 @@
       <scope>system</scope>
 	<systemPath>D:\workspace\habotDAO\target\habotDAO-0.0.1-SNAPSHOT.jar</systemPath>
 </dependency>
+<dependency>
+      <groupId>HabotRules</groupId>  
+       <artifactId>HabotRules</artifactId>  
+       <version>1.0</version> 
+      <scope>system</scope>
+	<systemPath>D:\workspace\HabotRules\target\HabotIRules-0.0.1-SNAPSHOT.jar</systemPath>
+</dependency>
   </dependencies>
 </project>

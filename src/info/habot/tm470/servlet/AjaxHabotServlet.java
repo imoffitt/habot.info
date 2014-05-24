@@ -66,20 +66,21 @@ public class AjaxHabotServlet extends HttpServlet {
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse
 	 *      response)
 	 */
+	@SuppressWarnings("unused")
 	protected void doGet(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
 
 		response.setContentType("text/html;charset=UTF-8");
 
-		System.out.println("HttpServletRequest");
+		log.debug("HttpServletRequest");
 
 		String action = request.getParameter("action");
 		String roadName = request.getParameter("roadName");
 		String roadDirection = request.getParameter("direction");
 
 		log.debug("action=" + action);
-		log.debug("roadName=" + roadName);
-		log.debug("roadDirection=" + roadDirection);
+//		log.debug("roadName=" + roadName);
+//		log.debug("roadDirection=" + roadDirection);
 
 		ApplicationContext applicationContext = new ClassPathXmlApplicationContext(
 				"Beans.xml");
@@ -111,31 +112,23 @@ public class AjaxHabotServlet extends HttpServlet {
 						sb = getLocationXML(lookupBeanDao, roadName,
 								roadDirection);
 					}
-
-					if (sb == null) {
-						response.setStatus(HttpServletResponse.SC_NO_CONTENT);
-					} else {
-						response.setContentType("text/xml");
-						response.setHeader("Cache-Control", "no-cache");
-						response.getWriter().write(
-								"<road" + action + "s>" + sb.toString()
-										+ "</road" + action + "s>");
-					}
-
 				} else if (action.equals("traffic")) {
-
 					sb = getTrafficDataXML(applicationContext,
 							request.getParameter("linkId"),
 							request.getParameter("derivedDate"));
-					if (sb == null) {
-						response.setStatus(HttpServletResponse.SC_NO_CONTENT);
-					} else {
-						response.setContentType("text/xml");
-						response.setHeader("Cache-Control", "no-cache");
-						response.getWriter().write(
-								"<road" + action + ">" + sb.toString()
-										+ "</road" + action + ">");
-					}
+				}  else if (action.equals("evaluateEvent")) {
+					sb = EvaluateEvent.evaluateEvent(request);
+				}  else if (action.equals("evaluateRoute")) {
+					sb = EvaluateRoute.evaluateRoute(request);
+				}
+				
+				if (sb == null) {
+					response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+				} else {
+					response.setContentType("text/xml");
+					response.setHeader("Cache-Control", "no-cache");
+					response.getWriter().write("<" + action + ">" + sb.toString()
+							+ "</" + action + ">");
 				}
 			} else {
 				log.debug("action is null");

@@ -25,13 +25,13 @@ name=keywords>
 <BODY>
 <%
 String location = (String) request.getParameter("location");
+//out.print ("Location=" + location + "<br>");
 String LinkId = "";
 if (null != location) {
 	int i = location.indexOf(":");
 	LinkId = location.substring (i+1);
 	location = location.substring (0,i);
 }
-
 java.util.Date dNow = new java.util.Date( );
 SimpleDateFormat ft =  new SimpleDateFormat ("HH:mm");
 %>
@@ -53,14 +53,14 @@ function sendRequestTrafficGet () {
 	
 	var x=xmldoc.getElementsByTagName("fusedSensorData");
 	
-	document.getElementById("VehicleFlowRate").textContent  = x[0].childNodes[1].text;
-	document.getElementById("TravelTime").textContent  = x[0].childNodes[2].text;
-	document.getElementById("OccupancyPercentage").textContent  = x[0].childNodes[3].text;
-	document.getElementById("FreeFlowTravelTime").textContent  = x[0].childNodes[4].text;
-	document.getElementById("AverageTimeHeadway").textContent  = x[0].childNodes[5].text;
-	document.getElementById("NormallyExpectedTravelTime").textContent  = x[0].childNodes[6].text;
-	document.getElementById("AverageVehicleSpeed").textContent  = x[0].childNodes[7].text;
-	document.getElementById("DerivedTime").textContent  = x[0].childNodes[8].text;
+	document.getElementById("VehicleFlowRate").textContent  = x[0].childNodes[1].firstChild.nodeValue;
+	document.getElementById("TravelTime").textContent  = x[0].childNodes[2].firstChild.nodeValue;
+	document.getElementById("OccupancyPercentage").textContent  = x[0].childNodes[3].firstChild.nodeValue;
+	document.getElementById("FreeFlowTravelTime").textContent  = x[0].childNodes[4].firstChild.nodeValue;
+	document.getElementById("AverageTimeHeadway").textContent  = x[0].childNodes[5].firstChild.nodeValue;
+	document.getElementById("NormallyExpectedTravelTime").textContent  = x[0].childNodes[6].firstChild.nodeValue;
+	document.getElementById("AverageVehicleSpeed").textContent  = x[0].childNodes[7].firstChild.nodeValue;
+	document.getElementById("DerivedTime").textContent  = x[0].childNodes[8].firstChild.nodeValue;
 }
 
 function timeChanged () {
@@ -82,11 +82,6 @@ function capacityChanged () {
 	var adjustedTravelTime = (parseFloat(travelTime) + parseFloat(addition)).toFixed(2);
 	
 	document.getElementById("AdjTravelTime").textContent = adjustedTravelTime;
-	
-/*	if (adjustedTravelTime > freeFlowTravelTime) {
-		alert ("sr");
-	}
-	*/
 }
 </script>
 <h2 align=center>Highways  Traffic Management Expert System- Open University TM470</h2>
@@ -105,7 +100,7 @@ function capacityChanged () {
             <td>Road <b><%= request.getParameter("roadNameList") %></b><input name="roadNameList" type="hidden" value="<%= request.getParameter("roadNameList") %>" />
 &nbsp;&nbsp;
 			  Direction <b><%= request.getParameter("direction") %></b><input name="direction" type="hidden" value="<%= request.getParameter("direction") %>" />&nbsp;&nbsp;
-              Location  <b><%= location %></b><input name="location" type="hidden" value="<%= location %>" /><input name="LinkId" type="hidden" value="<%= LinkId %>" />
+              Location  <b><%= location %></b><input name="location" type="hidden" value="<%= location %>:<%= LinkId %>" /><input name="LinkId" type="hidden" value="<%= LinkId %>" />
               &nbsp;</td>
           </tr>
 		            <tr>
@@ -156,9 +151,12 @@ ng.ready( function() {
     <td>AverageVehicleSpeed = <div style="display: inline;" id="AverageVehicleSpeed"></div></td>
     <td>DerivedTime = <div style="display: inline;" id="DerivedTime"></div></td>
   </tr>
-</table>
-</td>
+</table></td>
           </tr>
+<tr>
+  <td height="39">&nbsp;</td>
+  <td valign="top"><input type="submit" name="Submit" value="Evaluate AI Rules (Suitability)" /></td>
+</tr>
         </table>
       </form><p>&nbsp;</p></td>
     <td width="521" valign="top"><div align="center"><a href="images/Highways_Agency_Network_Map_-_November_2011.gif"><img src="images/Highways_Agency_Network_Map_-_November_2011-352x450.gif" width="352" height="450" border="0"></a><br>

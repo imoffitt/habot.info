@@ -22,9 +22,18 @@ name=keywords>
 </HEAD>
 <BODY>
 <script>
-var url = 'http://localhost:8080/habot.info';
-//var url = 'http://www.habot.info';
+//var url = 'http://localhost:8080/habot.info';
+var url = 'http://www.habot.info';
 var httpRequest;
+
+function createTestEventA556 () {	
+	var element = document.getElementById('roadNameList');
+    element.value = 'A556';
+	document.getElementById('roadDirectionDiv').innerHTML = "Direction <select onchange=\"sendRequestLocationGet ();\" name=\"direction\" id=\"direction\"><option value='northbound'  selected=\"selected\">northbound</option></select>";
+	document.getElementById('roadLocationDiv').innerHTML = "Location <select name=\"location\" id=\"location\"><option value='A556 northbound between A50 and A5034:125000501' selected=\"selected\">A556 northbound between A50 and A5034</option></select>";
+	
+	return false;
+}
 
 function sendRequestDirectionGet () {
 	
@@ -33,22 +42,6 @@ function sendRequestDirectionGet () {
 	
 	//alert('requestUrl=' + requestUrl);
 	makeRequest(requestUrl);
-	
-/*    var loader = dhtmlxAjax.getSync(requestUrl);
-	var xmldoc = loader.xmlDoc.responseXML;
-	
-	
-	var x=xmldoc.getElementsByTagName("roadDirection");
-	var roadDirectionOptions = "";
-
-	for (i=0;i<x.length;i++) {
-	
-	  roadDirectionOptions = roadDirectionOptions + "<option value='" + x[i].childNodes[0].text + "'>" + x[i].childNodes[0].text + "</option>";
-	}
-	
-	document.getElementById('roadDirectionDiv').innerHTML = "Direction <select onchange=\"sendRequestLocationGet ();\" name=\"direction\" id=\"direction\">" + roadDirectionOptions + "</select>";
-	sendRequestLocationGet ();
-	*/
 }
 
 
@@ -61,17 +54,18 @@ function sendRequestLocationGet () {
 	var requestUrl = url + "/AjaxHabot?action=location&roadName=" + roadNameList + "&direction="  + roadDirectionList;
     var loader = dhtmlxAjax.getSync(requestUrl);
 	var xmldoc = loader.xmlDoc.responseXML;
-	var x=xmldoc.getElementsByTagName("roadLocation");
+	var x=xmldoc.getElementsByTagName("Location");
 	var roadLocationOptions = "";
 
 	for (i=0;i<x.length;i++) {
-	  roadLocationOptions = roadLocationOptions + "<option value='" + x[i].childNodes[0].text + ":" + x[i].childNodes[0].getAttribute('linkId') + "'>" + x[i].childNodes[0].text + "</option>";
+	  roadLocationOptions = roadLocationOptions + "<option value='" + x[i].childNodes[0].firstChild.nodeValue + ":" + x[i].childNodes[0].getAttribute('linkId') + "'>" + x[i].childNodes[0].firstChild.nodeValue + "</option>";
 	}
 	
 	document.getElementById('roadLocationDiv').innerHTML = "Location <select name=\"location\" id=\"location\">" + roadLocationOptions + "</select>";
 }
 
 function makeRequest(url) {
+	
     if (window.XMLHttpRequest) { // Mozilla, Safari, ...
       httpRequest = new XMLHttpRequest();
     } else if (window.ActiveXObject) { // IE
@@ -82,7 +76,7 @@ function makeRequest(url) {
         try {
           httpRequest = new ActiveXObject("Microsoft.XMLHTTP");
         } 
-        catch (e) {}
+        catch (e) {  }
       }
     }
 
@@ -97,17 +91,20 @@ function makeRequest(url) {
 }
 
 function alertContents() {
+	
     if (httpRequest.readyState === 4) {
       if (httpRequest.status === 200) {
-        alert("RESP=" + httpRequest.responseText);
+    	  
+      //  alert("RESP=" + httpRequest.responseText);
         
-        
-    	var x=httpRequest.responseXML.getElementsByTagName("roadDirection");
+    	var x=httpRequest.responseXML.getElementsByTagName("Direction");
     	var roadDirectionOptions = "";
 
     	for (i=0;i<x.length;i++) {
     	
-    	  roadDirectionOptions = roadDirectionOptions + "<option value='" + x[i].childNodes[0].text + "'>" + x[i].childNodes[0].text + "</option>";
+    		//alert ("option=" + x[i].childNodes[0].firstChild.nodeValue );
+    		
+    	  roadDirectionOptions = roadDirectionOptions + "<option value='" + x[i].childNodes[0].firstChild.nodeValue + "'>" + x[i].childNodes[0].firstChild.nodeValue + "</option>";
     	}
     	
     	document.getElementById('roadDirectionDiv').innerHTML = "Direction <select onchange=\"sendRequestLocationGet ();\" name=\"direction\" id=\"direction\">" + roadDirectionOptions + "</select>";
@@ -119,8 +116,6 @@ function alertContents() {
 }
 </script>
 <%
-sqlLookupBean.setBSingleTransaction(true);
-
 StringBuffer roadNameList = new StringBuffer();
 		try {
 		
@@ -166,7 +161,8 @@ StringBuffer roadNameList = new StringBuffer();
 		            <tr>
             <td>&nbsp;</td>
             <td><label>
-              <input type="submit" name="Submit" value="Create Event">
+              <input type="submit" name="Submit" value="Create Event"> &nbsp;&nbsp;&nbsp;
+              <input name="btnTestEvent" type="button" id="btnTestEvent" value="Test Event A556" onclick="createTestEventA556();" />
             </label></td>
           </tr>
         </table>
