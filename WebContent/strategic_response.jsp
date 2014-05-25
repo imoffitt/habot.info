@@ -83,6 +83,28 @@ function capacityChanged () {
 	
 	document.getElementById("AdjTravelTime").textContent = adjustedTravelTime;
 }
+
+function evaluateEvent () {
+
+	var requestUrl = url + "/AjaxHabot?action=evaluateEvent&linkId=<%= LinkId %>&derivedDate=17-JAN-2014 " + currentTime + 
+		".00&lstIncidentType=<%= request.getParameter("lstIncidentType") %>&capacityReduction=" + document.getElementById("AdjTravelTime").textContent;
+	
+	//alert('requestUrl=' + requestUrl);
+	
+    var loader = dhtmlxAjax.getSync(requestUrl);
+	var xmldoc = loader.xmlDoc.responseXML;
+	
+	var x=xmldoc.getElementsByTagName("evaluateEvent");
+	
+	var eventSubType=xmldoc.getElementsByTagName("eventSubType");
+	var eventAlternativeRoute=xmldoc.getElementsByTagName("eventAlternativeRoute");
+	var eventLocationSuitable=xmldoc.getElementsByTagName("eventLocationSuitable");
+	var eventSeveritySuitable=xmldoc.getElementsByTagName("eventSeveritySuitable");
+	var eventTypeSuitable=xmldoc.getElementsByTagName("eventTypeSuitable");
+	var explanation=xmldoc.getElementsByTagName("explanation");
+
+}
+
 </script>
 <h2 align=center>Highways  Traffic Management Expert System- Open University TM470</h2>
 <a href="/">Home</a>
@@ -155,11 +177,11 @@ ng.ready( function() {
           </tr>
 <tr>
   <td height="39">&nbsp;</td>
-  <td valign="top"><input type="submit" name="Submit" value="Evaluate AI Rules (Suitability)" /></td>
+  <td valign="top"><input name="btnTestEvent" type="button" id="btnTestEvent" value="Evaluate AI Rules (Suitability)" onclick="evaluateEvent();" /></td>
 </tr>
         </table>
       </form><p>&nbsp;</p></td>
-    <td width="521" valign="top"><div align="center"><a href="images/Highways_Agency_Network_Map_-_November_2011.gif"><img src="images/Highways_Agency_Network_Map_-_November_2011-352x450.gif" width="352" height="450" border="0"></a><br>
+    <td width="521" valign="top"><div id="resultsPanel" align="center"><a href="images/Highways_Agency_Network_Map_-_November_2011.gif"><img src="images/Highways_Agency_Network_Map_-_November_2011-352x450.gif" width="352" height="450" border="0"></a><br>
     Source : <a href="http://www.highways.gov.uk/our-road-network/our-network/" target="_parent">highways.gov.uk</a></div></td>
   </tr>
   <tr>
