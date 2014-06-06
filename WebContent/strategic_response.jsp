@@ -20,7 +20,6 @@ name=keywords>
 <script type="text/javascript" src="nogray_js/1.2.1/components/timepicker.js"></script>
 
 <script  src="dhtmlxAjax/dhtmlxAjax/codebase/dhtmlxcommon.js"></script>
-
 </HEAD>
 <BODY>
 <%
@@ -36,8 +35,8 @@ java.util.Date dNow = new java.util.Date( );
 SimpleDateFormat ft =  new SimpleDateFormat ("HH:mm");
 %>
 <script>
-//var url = 'http://localhost:8080/habot.info';
-var url = 'http://www.habot.info';
+var url = 'http://localhost:8080/habot.info';
+//var url = 'http://www.habot.info';
 
 var currentTime = "<%= ft.format(dNow) %>";
 
@@ -72,7 +71,6 @@ function capacityChanged () {
 	var travelTime = document.getElementById("TravelTime").textContent;
 	var freeFlowTravelTime = document.getElementById("FreeFlowTravelTime").textContent;
 	var normallyExpectedTravelTime = document.getElementById("NormallyExpectedTravelTime").textContent;
-
 	
 	if (travelTime == 0.0) {
 		travelTime = normallyExpectedTravelTime;
@@ -86,32 +84,105 @@ function capacityChanged () {
 
 function evaluateEvent () {
 
-	var requestUrl = url + "/AjaxHabot?action=evaluateEvent&linkId=<%= LinkId %>&derivedDate=17-JAN-2014 " + currentTime + 
-		".00&lstIncidentType=<%= request.getParameter("lstIncidentType") %>&capacityReduction=" + document.getElementById("AdjTravelTime").textContent;
-	
-	//alert('requestUrl=' + requestUrl);
-	
-    var loader = dhtmlxAjax.getSync(requestUrl);
-	var xmldoc = loader.xmlDoc.responseXML;
-	
-	var x=xmldoc.getElementsByTagName("evaluateEvent");
-	
-	var eventSubType=xmldoc.getElementsByTagName("eventSubType");
-	var eventAlternativeRoute=xmldoc.getElementsByTagName("eventAlternativeRoute");
-	var eventLocationSuitable=xmldoc.getElementsByTagName("eventLocationSuitable");
-	var eventSeveritySuitable=xmldoc.getElementsByTagName("eventSeveritySuitable");
-	var eventTypeSuitable=xmldoc.getElementsByTagName("eventTypeSuitable");
-	var explanation=xmldoc.getElementsByTagName("explanation");
-
+	var requestUrl = url + "/AjaxHabot?action=evaluateEvent&linkId=<%= LinkId %>&derivedDate=17-JAN-2014 " + document.getElementById("timepicker_input").value + 
+		".00&lstIncidentType=<%= request.getParameter("lstIncidentType") %>&capacityReduction=" + document.getElementById("capacityReduction").value;
+		
+	makeRequest(requestUrl);
 }
 
+function makeRequest(url) {
+	
+    if (window.XMLHttpRequest) { // Mozilla, Safari, ...
+      httpRequest = new XMLHttpRequest();
+    } else if (window.ActiveXObject) { // IE
+      try {
+        httpRequest = new ActiveXObject("Msxml2.XMLHTTP");
+      } 
+      catch (e) {
+        try {
+          httpRequest = new ActiveXObject("Microsoft.XMLHTTP");
+        } 
+        catch (e) {  }
+      }
+    }
+
+    if (!httpRequest) {
+      alert('Giving up :( Cannot create an XMLHTTP instance');
+      return false;
+    }
+    
+    httpRequest.onreadystatechange = alertContents;
+    httpRequest.open('GET', url);
+    httpRequest.send();
+}
+
+function alertContents() {
+	
+    if (httpRequest.readyState === 4) {	
+      if (httpRequest.status === 200) {
+		  
+        //alert("RESP=" + httpRequest.responseText.substring(1, 200));
+        
+    	var x=httpRequest.responseXML.getElementsByTagName("evaluateEvent");
+
+		var eventSubType = httpRequest.responseXML.getElementsByTagName("eventSubType")[0].childNodes[0].nodeValue;
+		var eventAlternativeRoute = httpRequest.responseXML.getElementsByTagName("eventAlternativeRoute")[0].childNodes[0].nodeValue;
+		var eventLocationSuitable = httpRequest.responseXML.getElementsByTagName("eventLocationSuitable")[0].childNodes[0].nodeValue;
+		var eventSeveritySuitable = httpRequest.responseXML.getElementsByTagName("eventSeveritySuitable")[0].childNodes[0].nodeValue;
+		var eventTypeSuitable = httpRequest.responseXML.getElementsByTagName("eventTypeSuitable")[0].childNodes[0].nodeValue;
+		/*
+		var eventSubType = httpRequest.responseXML.getElementsByTagName("eventSubType")[0].nodeValue;
+		var eventAlternativeRoute = httpRequest.responseXML.getElementsByTagName("eventAlternativeRoute")[0].nodeValue;
+		var eventLocationSuitable = httpRequest.responseXML.getElementsByTagName("eventLocationSuitable")[0].nodeValue;
+		var eventSeveritySuitable = httpRequest.responseXML.getElementsByTagName("eventSeveritySuitable")[0].nodeValue;
+		var eventTypeSuitable = httpRequest.responseXML.getElementsByTagName("eventTypeSuitable")[0].nodeValue;*/
+		
+		var startIdx = httpRequest.responseText.indexOf("<object-stream>");
+		var endIdx = httpRequest.responseText.indexOf("</object-stream>");		
+		var explanation = httpRequest.responseText.substring(startIdx, endIdx);
+		
+		document.getElementById("resultsPanel").innerHTML = "<p>eventSubType=" + eventSubType + "<br>" +
+			"eventAlternativeRoute=" + eventAlternativeRoute + "<br>" +
+			"eventLocationSuitable=" + eventLocationSuitable + "<br>" +
+			"eventSeveritySuitable=" + eventSeveritySuitable + "<br>" +
+			"eventTypeSuitable=" + eventTypeSuitable + "</p>";
+			
+		// VMSUnit
+		document.getElementById("vmsline1").innerHTML = httpRequest.responseXML.getElementsByTagName("MessageLine1")[0].childNodes[0].nodeValue;
+		document.getElementById("vmsline2").innerHTML = httpRequest.responseXML.getElementsByTagName("MessageLine2")[0].childNodes[0].nodeValue;
+		document.getElementById("vmsline3").innerHTML = httpRequest.responseXML.getElementsByTagName("MessageLine3")[0].childNodes[0].nodeValue;
+			
+		document.getElementById("explanationArea").rows=30;
+		document.getElementById("explanationArea").innerHTML = explanation;
+		document.getElementById("explanationDiv").style.visibility="visible";
+		
+		document.getElementById("defaultRouteDiv").style.visibility="visible";
+		document.getElementById("alternativeRouteDiv").style.visibility="visible";
+		
+		// Default Route
+		var altRoute=httpRequest.responseXML.getElementsByTagName("AlternativeRoute");
+		alert ("len=" + altRoute.length);
+		
+		var defaultRouteText = "";
+		//for (i=0;i<x.length;i++) {
+	  		//defaultRouteText = defaultRouteText + x[i].childNodes[0].nodeValue;
+		//}
+	  
+      } else {
+        alert('There was a problem with the request.');
+      }
+    }
+}
+
+document.getElementById("explanationArea").style.visibility="hidden";
 </script>
 <h2 align=center>Highways  Traffic Management Expert System- Open University TM470</h2>
 <a href="/">Home</a>
+<form action="#" method="post" name="fromIncident" id="fromIncident">
 <table width="100%" border="0" cellspacing="3" cellpadding="3">
   <tr>
     <td valign="top"><p>Step 2. Strategic Response Management </p>
-      <form action="#" method="post" name="fromIncident" id="fromIncident">
+      
         <table width="100%" border="1" cellspacing="3" cellpadding="3">
           <tr>
             <td width="22%">Incident  </td>
@@ -126,8 +197,8 @@ function evaluateEvent () {
               &nbsp;</td>
           </tr>
 		            <tr>
-            <td>Increased Travel Time </td>
-            <td><input onchange="capacityChanged();" name="capacityReduction" type="text" value="5" size="2" maxlength="2" readonly="true" />%
+            <td>Capacity Reduction </td>
+            <td><input onchange="capacityChanged();" id="capacityReduction" name="capacityReduction" type="text" value="5" size="2" maxlength="2" readonly="true" />%
             <div id="slider"></div></td>
           </tr>
 		            <tr>
@@ -144,8 +215,8 @@ ng.ready( function() {
             }
         },
 		picker_image:'nogray_js/1.2.1/assets/components/timepicker/images/clock_icon.png',
-        format:'H:i a',
-        server_format:'H:i a',
+        format:'H:i',
+        server_format:'H:i',
         use24:true,
 		value:'<%= ft.format(dNow) %>',
         top_hour: 24  // what's the top hour (in the clock face, 0 = midnight)
@@ -177,18 +248,37 @@ ng.ready( function() {
           </tr>
 <tr>
   <td height="39">&nbsp;</td>
-  <td valign="top"><input name="btnTestEvent" type="button" id="btnTestEvent" value="Evaluate AI Rules (Suitability)" onclick="evaluateEvent();" /></td>
+  <td valign="top"><input name="btnTestEvent" type="button" id="btnTestEvent" value="Evaluate by Expert System" onclick="evaluateEvent();" /></td>
 </tr>
-        </table>
-      </form><p>&nbsp;</p></td>
+        </table></td>
     <td width="521" valign="top"><div id="resultsPanel" align="center"><a href="images/Highways_Agency_Network_Map_-_November_2011.gif"><img src="images/Highways_Agency_Network_Map_-_November_2011-352x450.gif" width="352" height="450" border="0"></a><br>
-    Source : <a href="http://www.highways.gov.uk/our-road-network/our-network/" target="_parent">highways.gov.uk</a></div></td>
+    Source : <a href="http://www.highways.gov.uk/our-road-network/our-network/" target="_parent">highways.gov.uk</a></div><div align="center" id="vmsUnit">
+      <table width="300" border="0" cellpadding="1" cellspacing="1" bgcolor="#000000">
+        <tr  align="center">
+          <td  class="vmsUnit"><div id="vmsline1"></div></td>
+          </tr>
+        <tr align="center">
+          <td class="vmsUnit"><div id="vmsline2"></div></td>
+          </tr>
+        <tr align="center">
+          <td class="vmsUnit"><div id="vmsline3"></div></td>
+          </tr>
+      </table>
+    </div></td>
   </tr>
+  <tr><td width="50%"><div id="defaultRouteDiv" style="visibility:hidden"><fieldset>
+    <legend>Default Route</legend><textarea name="explanationArea" style="width:100%" rows="1" id="defaultRouteArea"></textarea>
+	</fieldset></div></td>
+	<td width="50%"><div id="alternativeRouteDiv" style="visibility:hidden"><fieldset>
+    <legend>Alternative Route</legend><textarea name="explanationArea" style="width:100%" rows="1" id="alternativeRouteArea"></textarea>
+	</fieldset></div></td></tr>
   <tr>
-    <td>&nbsp;</td>
-    <td width="521">&nbsp;</td>
+    <td colspan="2"><div id="explanationDiv" style="visibility:hidden"><fieldset>
+    <legend>Explanation</legend><textarea name="explanationArea" style="width:100%" rows="1" id="explanationArea"></textarea>
+	</fieldset></div></td>
   </tr>
 </table>
+</form>
 <div class="footer">
 <p>Afoot and light-hearted I take to the open road,
   Healthy, free, the world before me,

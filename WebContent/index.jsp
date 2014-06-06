@@ -22,8 +22,8 @@ name=keywords>
 </HEAD>
 <BODY>
 <script>
-//var url = 'http://localhost:8080/habot.info';
-var url = 'http://www.habot.info';
+var url = 'http://localhost:8080/habot.info';
+//var url = 'http://www.habot.info';
 var httpRequest;
 
 function createTestEventA556 () {	
@@ -45,7 +45,6 @@ function sendRequestDirectionGet () {
 }
 
 
-
 function sendRequestLocationGet () {
 	//alert('sendRequestLocationGet');
 		
@@ -54,11 +53,14 @@ function sendRequestLocationGet () {
 	var requestUrl = url + "/AjaxHabot?action=location&roadName=" + roadNameList + "&direction="  + roadDirectionList;
     var loader = dhtmlxAjax.getSync(requestUrl);
 	var xmldoc = loader.xmlDoc.responseXML;
-	var x=xmldoc.getElementsByTagName("Location");
+		
+	var x=xmldoc.getElementsByTagName("roadLocation");
 	var roadLocationOptions = "";
 
 	for (i=0;i<x.length;i++) {
-	  roadLocationOptions = roadLocationOptions + "<option value='" + x[i].childNodes[0].firstChild.nodeValue + ":" + x[i].childNodes[0].getAttribute('linkId') + "'>" + x[i].childNodes[0].firstChild.nodeValue + "</option>";
+	
+	  roadLocationOptions = roadLocationOptions + "<option value='" + x[i].childNodes[0].nodeValue + ":" + x[i].getAttribute('linkId') + "'>" + x[i].childNodes[0].nodeValue + "</option>";
+	  
 	}
 	
 	document.getElementById('roadLocationDiv').innerHTML = "Location <select name=\"location\" id=\"location\">" + roadLocationOptions + "</select>";
@@ -95,16 +97,16 @@ function alertContents() {
     if (httpRequest.readyState === 4) {
       if (httpRequest.status === 200) {
     	  
-      //  alert("RESP=" + httpRequest.responseText);
+// alert("RESP=" + httpRequest.responseText);
         
-    	var x=httpRequest.responseXML.getElementsByTagName("Direction");
+    	var x=httpRequest.responseXML.getElementsByTagName("roadDirection");
     	var roadDirectionOptions = "";
 
     	for (i=0;i<x.length;i++) {
     	
-    		//alert ("option=" + x[i].childNodes[0].firstChild.nodeValue );
+    	  //alert ("option=" + x[i].childNodes[0].nodeValue );
     		
-    	  roadDirectionOptions = roadDirectionOptions + "<option value='" + x[i].childNodes[0].firstChild.nodeValue + "'>" + x[i].childNodes[0].firstChild.nodeValue + "</option>";
+    	  roadDirectionOptions = roadDirectionOptions + "<option value='" + x[i].childNodes[0].nodeValue + "'>" + x[i].childNodes[0].nodeValue + "</option>";
     	}
     	
     	document.getElementById('roadDirectionDiv').innerHTML = "Direction <select onchange=\"sendRequestLocationGet ();\" name=\"direction\" id=\"direction\">" + roadDirectionOptions + "</select>";

@@ -96,6 +96,10 @@ public class AjaxHabotServlet extends HttpServlet {
 			if (action != null) {
 				StringBuffer sb = new StringBuffer();
 
+				/*
+				 * AjaxHabot?action=direction&roadName=M6
+				 * AjaxHabot?action=location&roadName=M6&direction=northbound
+				 */
 				if (action.equals("direction") || (action.equals("location"))) {
 
 					SqlLookupBean lookupBeanDao = (SqlLookupBean) applicationContext
@@ -154,10 +158,8 @@ public class AjaxHabotServlet extends HttpServlet {
 		if (!lstRoadDirections.isEmpty()) {
 			for (Map<String, Object> roadIter : lstRoadDirections) {
 
-				sb.append("<roadDirection>");
-				sb.append("<direction>" + roadIter.get("directionBound")
-						+ "</direction>");
-				sb.append("</roadDirection>");
+				sb.append("<roadDirection>" + roadIter.get("directionBound")
+						+ "</roadDirection>");
 			}
 		}
 
@@ -184,10 +186,8 @@ public class AjaxHabotServlet extends HttpServlet {
 		if (!lstRoadLocations.isEmpty()) {
 			for (Map<String, Object> roadIter : lstRoadLocations) {
 
-				sb.append("<roadLocation>");
-				sb.append("<location linkId=\"" + roadIter.get("linkId") + "\">" + roadIter.get("locationName")
-						+ "</location>");
-				sb.append("</roadLocation>");
+				sb.append("<roadLocation linkId=\"" + roadIter.get("linkId") + "\">" + roadIter.get("locationName")
+						+ "</roadLocation>");
 			}
 		}
 
