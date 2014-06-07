@@ -22,8 +22,8 @@ name=keywords>
 </HEAD>
 <BODY>
 <script>
-var url = 'http://localhost:8080/habot.info';
-//var url = 'http://www.habot.info';
+//var url = 'http://localhost:8080/habot.info';
+var url = 'http://www.habot.info';
 var httpRequest;
 
 function createTestEventA556 () {	
@@ -55,7 +55,7 @@ function sendRequestLocationGet () {
 	var xmldoc = loader.xmlDoc.responseXML;
 		
 	var x=xmldoc.getElementsByTagName("roadLocation");
-	var roadLocationOptions = "";
+	var roadLocationOptions = "<option value=\"\">Please Select ...</option>";
 
 	for (i=0;i<x.length;i++) {
 	
@@ -100,7 +100,7 @@ function alertContents() {
 // alert("RESP=" + httpRequest.responseText);
         
     	var x=httpRequest.responseXML.getElementsByTagName("roadDirection");
-    	var roadDirectionOptions = "";
+    	var roadDirectionOptions = "<option value=\"\">Please Select ...</option>";
 
     	for (i=0;i<x.length;i++) {
     	
@@ -151,6 +151,7 @@ StringBuffer roadNameList = new StringBuffer();
             <td>Location</td>
             <td>Road 
               <select name="roadNameList" id="roadNameList" onchange="sendRequestDirectionGet ();">
+			  <option value="">Please Select ...</option>
                 <%= roadNameList %>
               </select>&nbsp;&nbsp;<div style="display: inline;" id="roadDirectionDiv"></div>&nbsp;&nbsp;
               <div style="display: inline;" id="roadLocationDiv"></div>

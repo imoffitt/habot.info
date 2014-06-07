@@ -1,8 +1,5 @@
 package info.habot.tm470.servlet;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
 import info.habot.tm470.dao.drools.EventSuitability;
 import info.habot.tm470.dao.drools.RouteDetermination;
 import info.habot.tm470.dao.pojo.StrategicEvent;
@@ -24,7 +21,7 @@ public class EvaluateEvent {
 	private static final Logger log = Logger.getLogger(EvaluateEvent.class
 			.getName());
 
-	static final boolean lowMemory = false;
+	private static boolean lowMemory = true;
 
 	public EvaluateEvent() {
 
@@ -34,11 +31,7 @@ public class EvaluateEvent {
 	 * @param request
 	 */
 	static public StringBuffer evaluateEvent(HttpServletRequest request) {
-
-		// 2014-05-03 00:00:00
-		final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("2014-01-17 HH:mm:ss");
-		Date now = new Date();
-		
+	
 		StringBuffer sb = new StringBuffer();
 
 		StrategicEvent strategicEvent = new StrategicEvent();
@@ -49,24 +42,26 @@ public class EvaluateEvent {
 				.intValue());
 		strategicEvent.setCapacity_reduction(new Float(request
 				.getParameter("capacityReduction")).floatValue());
-		
-		strategicEvent.setDateCreated(simpleDateFormat.format(now));
+		strategicEvent.setDateCreated((String) request
+				.getParameter("derivedDate"));
 	
-		log.debug ("SE=" + strategicEvent.toString());
+		 String cheatMode = request.getParameter("cheatMode");
+		 log.debug("cheatMode=" + cheatMode);
+		 if ((cheatMode != null) && cheatMode.equals("true")) {
+			 lowMemory = true;
+		 } else {
+			 lowMemory = false;
+		 }
+			
+		log.debug ("2. SE=" + strategicEvent.toString());
+		log.debug("lowMemory=" + lowMemory);
 		
-
 		EventSuitability eventSuitability = new EventSuitability();
 
 		try {
 			strategicEvent = eventSuitability
 					.evaluateStrategicEvent(strategicEvent);
-		} catch (Exception ex) {
-			log.error("EventSuitability : " + ex.getMessage());
-			sb.append("<error3>" + ex.getStackTrace() + "</error3>");
-			log.debug ("SE=" + strategicEvent.toString());
-		}
-
-		try {
+			
 			sb.append("<eventSubType>" + strategicEvent.getEvent_sub_type()
 					+ "</eventSubType>");
 			sb.append("<eventAlternativeRoute>"
@@ -80,28 +75,32 @@ public class EvaluateEvent {
 					+ "</eventSeveritySuitable>");
 			sb.append("<eventTypeSuitable>" + strategicEvent.isType_suitable()
 					+ "</eventTypeSuitable>");
-
 		} catch (Exception ex) {
 			log.error("EventSuitability : " + ex.getMessage());
-			sb.append("<error4>" + ex.getMessage() + "</error4>");
+			sb.append("<error3>" + eventSuitability.getErrorText() + " <![CDATA[" + ex.getStackTrace() + "]]></error3>");
 		}
 
 		RouteDetermination routeDetermination = new RouteDetermination();
-
+		
 		if (lowMemory) {
 			// This is a fudge to overcome the out of memory error on server
 			sb.append(routeDetermination.getDefaultA556XML(strategicEvent));
 
-			sb.append(routeDetermination
+			try {
+				sb.append(routeDetermination
 					.getVMSEquipmentBeforeDecisionPoint(strategicEvent));
-
-			sb.append(eventSuitability.getExplantion());
+			} catch (Exception ex) {
+				log.error("getVMSEquipmentBeforeDecisionPoint is null");
+			}
 		} else {
 			try {
 				strategicEvent = routeDetermination
 						.evaluateRoute(strategicEvent);
 
 				if (strategicEvent.getAlternativeRoute() != null) {
+					
+					log.debug ("Alternative=" + strategicEvent.getAlternativeRoute().toString());
+					
 					sb.append("<isAlternativeValid>"
 							+ strategicEvent.getAlternativeRoute()
 									.getIs_valid() + "</isAlternativeValid>");
@@ -110,15 +109,14 @@ public class EvaluateEvent {
 									.getAlternativeRouteExplantion(strategicEvent
 											.getAlternativeRoute())
 							+ "</AlternativeRoute>");
-					sb.append("<DefaultLocationSuitable>"
+					sb.append("<DefaultRoute>"
 							+ routeDetermination
 									.getDefaultRouteExplantion(strategicEvent
 											.getDefaultRoute())
-							+ "</DefaultLocationSuitable>");
+							+ "</DefaultRoute>");
 					sb.append(routeDetermination
 							.getVMSEquipmentBeforeDecisionPoint(strategicEvent));
 
-					sb.append(eventSuitability.getExplantion());
 				} else {
 					log.error("EventSuitability : strategicEvent.getAlternativeRoute() is null");
 					sb.append("<error4>strategicEvent.getAlternativeRoute() is null</error4>");
@@ -129,7 +127,10 @@ public class EvaluateEvent {
 				sb.append("<error5>" + ex.getMessage() + "</error5>");
 			}
 		}
-
+		
+		sb.append(eventSuitability.getExplantion());
+		log.debug(sb.toString());
+		
 		return sb;
 	}
 }

@@ -35,15 +35,15 @@ java.util.Date dNow = new java.util.Date( );
 SimpleDateFormat ft =  new SimpleDateFormat ("HH:mm");
 %>
 <script>
-var url = 'http://localhost:8080/habot.info';
-//var url = 'http://www.habot.info';
+//var url = 'http://localhost:8080/habot.info';
+var url = 'http://www.habot.info';
 
 var currentTime = "<%= ft.format(dNow) %>";
 
 function sendRequestTrafficGet () {
 	//alert('sendRequestTrafficGet');
 	
-	var requestUrl = url + "/AjaxHabot?action=traffic&linkId=<%= LinkId %>&derivedDate=17-JAN-2014 " + currentTime + ".00";
+	var requestUrl = url + "/AjaxHabot?action=traffic&linkId=<%= LinkId %>&derivedDate=2014-01-17 " + currentTime + ".00";
 	
 	//alert('requestUrl=' + requestUrl);
 	
@@ -84,13 +84,22 @@ function capacityChanged () {
 
 function evaluateEvent () {
 
-	var requestUrl = url + "/AjaxHabot?action=evaluateEvent&linkId=<%= LinkId %>&derivedDate=17-JAN-2014 " + document.getElementById("timepicker_input").value + 
-		".00&lstIncidentType=<%= request.getParameter("lstIncidentType") %>&capacityReduction=" + document.getElementById("capacityReduction").value;
+
+	var cheatMode = document.getElementById("cheatMode").checked;
+	
+	//alert (cheatMode);
+	
+	var requestUrl = url + "/AjaxHabot?action=evaluateEvent&linkId=<%= LinkId %>&derivedDate=2014-01-17 " + document.getElementById("timepicker_input").value + 
+		".00&lstIncidentType=<%= request.getParameter("lstIncidentType") %>&capacityReduction=" + document.getElementById("capacityReduction").value +
+		"&cheatMode=" + cheatMode;
 		
 	makeRequest(requestUrl);
 }
 
 function makeRequest(url) {
+	
+	//alert (url);
+	document.getElementById("vmsUnit").innerHTML = url;
 	
     if (window.XMLHttpRequest) { // Mozilla, Safari, ...
       httpRequest = new XMLHttpRequest();
@@ -140,17 +149,26 @@ function alertContents() {
 		var startIdx = httpRequest.responseText.indexOf("<object-stream>");
 		var endIdx = httpRequest.responseText.indexOf("</object-stream>");		
 		var explanation = httpRequest.responseText.substring(startIdx, endIdx);
-		
-		document.getElementById("resultsPanel").innerHTML = "<p>eventSubType=" + eventSubType + "<br>" +
+				
+		var resultsText = "eventSubType=" + eventSubType + "<br>" +
 			"eventAlternativeRoute=" + eventAlternativeRoute + "<br>" +
 			"eventLocationSuitable=" + eventLocationSuitable + "<br>" +
 			"eventSeveritySuitable=" + eventSeveritySuitable + "<br>" +
-			"eventTypeSuitable=" + eventTypeSuitable + "</p>";
+			"eventTypeSuitable=" + eventTypeSuitable;
 			
 		// VMSUnit
 		document.getElementById("vmsline1").innerHTML = httpRequest.responseXML.getElementsByTagName("MessageLine1")[0].childNodes[0].nodeValue;
 		document.getElementById("vmsline2").innerHTML = httpRequest.responseXML.getElementsByTagName("MessageLine2")[0].childNodes[0].nodeValue;
 		document.getElementById("vmsline3").innerHTML = httpRequest.responseXML.getElementsByTagName("MessageLine3")[0].childNodes[0].nodeValue;
+		
+		var vmsText = "Electronic Address : " + httpRequest.responseXML.getElementsByTagName("vmsUnitElectronicAddress")[0].childNodes[0].nodeValue + 
+			", Geog Address : " + httpRequest.responseXML.getElementsByTagName("vmsUnitIdentifier")[0].childNodes[0].nodeValue +
+			"<br>" + httpRequest.responseXML.getElementsByTagName("vmsType")[0].childNodes[0].nodeValue + " (" + 
+			httpRequest.responseXML.getElementsByTagName("vmsTypeCode")[0].childNodes[0].nodeValue + "), [Lat=" + 
+			httpRequest.responseXML.getElementsByTagName("Lattitude")[0].childNodes[0].nodeValue + "Long=" +
+			httpRequest.responseXML.getElementsByTagName("Lontitude")[0].childNodes[0].nodeValue + "]";
+		
+		document.getElementById("vmsUnit").innerHTML = vmsText;
 			
 		document.getElementById("explanationArea").rows=30;
 		document.getElementById("explanationArea").innerHTML = explanation;
@@ -159,17 +177,40 @@ function alertContents() {
 		document.getElementById("defaultRouteDiv").style.visibility="visible";
 		document.getElementById("alternativeRouteDiv").style.visibility="visible";
 		
-		// Default Route
-		var altRoute=httpRequest.responseXML.getElementsByTagName("AlternativeRoute");
-		alert ("len=" + altRoute.length);
+		// Alt Route
+		var altRoute=httpRequest.responseXML.getElementsByTagName("AlternativeRoute");	
+			resultsText = resultsText + "<br>Alternative Travel Time=" + altRoute[0].getElementsByTagName("travelTime")[0].childNodes[0].nodeValue;
 		
-		var defaultRouteText = "";
-		//for (i=0;i<x.length;i++) {
-	  		//defaultRouteText = defaultRouteText + x[i].childNodes[0].nodeValue;
-		//}
+		var altRoutes = altRoute[0].getElementsByTagName("AlternativeRouteExplantion");
+		
+		var altRouteText = "";
+		for (i=0;i<altRoutes.length;i++) {
+	  		//alert (altRoutes[i].getElementsByTagName("locationName")[0].childNodes[0].nodeValue);
+			altRouteText = altRouteText + altRoutes[i].getElementsByTagName("locationName")[0].childNodes[0].nodeValue + "\n";
+		}
+
+		document.getElementById("alternativeRouteTxt").innerHTML = altRouteText;
+		document.getElementById("alternativeRouteTxt").rows=10;
+		
+		// Curr Route
+		var currRoute=httpRequest.responseXML.getElementsByTagName("DefaultRoute");	
+		resultsText = resultsText + "<br>Default Travel Time=" + currRoute[0].getElementsByTagName("travelTime")[0].childNodes[0].nodeValue;
+		var currRoutes = currRoute[0].getElementsByTagName("DefaultRouteExplantion");
+		
+		var currRouteText = "";
+		for (i=0;i<currRoutes.length;i++) {
+	  		//alert (altRoutes[i].getElementsByTagName("locationName")[0].childNodes[0].nodeValue);
+			currRouteText = currRouteText + currRoutes[i].getElementsByTagName("locationName")[0].childNodes[0].nodeValue + "\n";
+		}
+
+		document.getElementById("defaultRouteTxt").innerHTML = currRouteText;
+		document.getElementById("defaultRouteTxt").rows=10;
+		
+		document.getElementById("resultsPanel").innerHTML = "<p>" + resultsText + "</p>";
 	  
       } else {
-        alert('There was a problem with the request.');
+        alert('There was a problem with the request. status=' + httpRequest.status);
+		document.getElementById("vmsUnit").innerHTML = httpRequest.responseText;
       }
     }
 }
@@ -193,7 +234,7 @@ document.getElementById("explanationArea").style.visibility="hidden";
             <td>Road <b><%= request.getParameter("roadNameList") %></b><input name="roadNameList" type="hidden" value="<%= request.getParameter("roadNameList") %>" />
 &nbsp;&nbsp;
 			  Direction <b><%= request.getParameter("direction") %></b><input name="direction" type="hidden" value="<%= request.getParameter("direction") %>" />&nbsp;&nbsp;
-              Location  <b><%= location %></b><input name="location" type="hidden" value="<%= location %>:<%= LinkId %>" /><input name="LinkId" type="hidden" value="<%= LinkId %>" />
+              Location  <b><%= location %></b><input name="location" type="hidden" value="<%= location %>:<%= LinkId %>" /><input name="linkId" type="hidden" value="<%= LinkId %>" />
               &nbsp;</td>
           </tr>
 		            <tr>
@@ -248,11 +289,12 @@ ng.ready( function() {
           </tr>
 <tr>
   <td height="39">&nbsp;</td>
-  <td valign="top"><input name="btnTestEvent" type="button" id="btnTestEvent" value="Evaluate by Expert System" onclick="evaluateEvent();" /></td>
+  <td valign="top"><input name="btnTestEvent" type="button" id="btnTestEvent" value="Evaluate by Expert System" onclick="evaluateEvent();" /> &nbsp;&nbsp;&nbsp;&nbsp; CheatMode <input alt="Defaults to A556 Route" id="cheatMode" name="cheatMode" type="checkbox" value="1" checked="checked" />
+    </td>
 </tr>
         </table></td>
     <td width="521" valign="top"><div id="resultsPanel" align="center"><a href="images/Highways_Agency_Network_Map_-_November_2011.gif"><img src="images/Highways_Agency_Network_Map_-_November_2011-352x450.gif" width="352" height="450" border="0"></a><br>
-    Source : <a href="http://www.highways.gov.uk/our-road-network/our-network/" target="_parent">highways.gov.uk</a></div><div align="center" id="vmsUnit">
+    Source : <a href="http://www.highways.gov.uk/our-road-network/our-network/" target="_parent">highways.gov.uk</a></div>
       <table width="300" border="0" cellpadding="1" cellspacing="1" bgcolor="#000000">
         <tr  align="center">
           <td  class="vmsUnit"><div id="vmsline1"></div></td>
@@ -264,13 +306,13 @@ ng.ready( function() {
           <td class="vmsUnit"><div id="vmsline3"></div></td>
           </tr>
       </table>
-    </div></td>
+    <div align="left" id="vmsUnit"></div></td>
   </tr>
   <tr><td width="50%"><div id="defaultRouteDiv" style="visibility:hidden"><fieldset>
-    <legend>Default Route</legend><textarea name="explanationArea" style="width:100%" rows="1" id="defaultRouteArea"></textarea>
+    <legend>Default Route</legend><textarea name="defaultRouteTxt" style="width:100%" rows="1" id="defaultRouteTxt"></textarea>
 	</fieldset></div></td>
 	<td width="50%"><div id="alternativeRouteDiv" style="visibility:hidden"><fieldset>
-    <legend>Alternative Route</legend><textarea name="explanationArea" style="width:100%" rows="1" id="alternativeRouteArea"></textarea>
+    <legend>Alternative Route</legend><textarea name="alternativeRouteTxt" style="width:100%" rows="1" id="alternativeRouteTxt"></textarea>
 	</fieldset></div></td></tr>
   <tr>
     <td colspan="2"><div id="explanationDiv" style="visibility:hidden"><fieldset>

@@ -1,11 +1,7 @@
 package info.habot.tm470.servlet;
 
-import java.awt.geom.Point2D;
-
-import info.habot.tm470.dao.drools.EventSuitability;
 import info.habot.tm470.dao.drools.RouteDetermination;
 import info.habot.tm470.dao.pojo.StrategicEvent;
-import info.habot.tm470.dao.pojo.VMSUnitEquipment;
 
 import javax.servlet.http.HttpServletRequest;
 
